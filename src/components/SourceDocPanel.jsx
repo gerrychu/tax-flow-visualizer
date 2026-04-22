@@ -435,7 +435,7 @@ export default function SourceDocPanel({ width = 220 }) {
               gap: 4,
             }}
           >
-            + Add document
+            + Enter a form
           </button>
 
           {showPicker && (
@@ -501,7 +501,7 @@ export default function SourceDocPanel({ width = 220 }) {
       <div style={{ flex: 1, overflowY: 'auto', padding: '10px 10px' }}>
         {sortedDocs.length === 0 && (
           <div style={{ textAlign: 'center', color: '#94a3b8', fontSize: 12, padding: '24px 0' }}>
-            No documents yet.<br />Click "+ Add document" to start.
+            No forms yet.<br />Click "+ Enter a form" to start.
           </div>
         )}
         {sortedDocs.map(doc => (

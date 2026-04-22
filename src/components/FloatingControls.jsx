@@ -127,7 +127,7 @@ export default function FloatingControls() {
         </div>
         <div style={{ width: 1, height: 16, background: '#e2e8f0', flexShrink: 0 }} />
         <div ref={presetsMenuRef} style={{ position: 'relative' }}>
-          <button style={{ ...btnStyle, color: '#6366f1' }} onClick={() => setShowPresetsMenu(m => !m)}>Presets</button>
+          <button style={{ ...btnStyle, color: '#6366f1' }} onClick={() => setShowPresetsMenu(m => !m)}>Examples</button>
           {showPresetsMenu && (
             <div style={{
               position: 'absolute',

@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm create:*)",
+      "Bash(npm init:*)",
+      "Bash(npm install:*)",
+      "Bash(npm run:*)",
+      "Bash(npx playwright@latest screenshot http://localhost:5173/ /tmp/taxapp-initial2.png)",
+      "Bash(npx playwright:*)",
+      "Bash(npx playwright@latest eval ':*)",
+      "Bash(node -e ':*)",
+      "Bash(screencapture /tmp/tax-flow-screenshot.png)"
+    ]
+  }
+}

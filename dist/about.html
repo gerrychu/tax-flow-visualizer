@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>About — Taxes are Beautiful</title>
+    <meta name="description" content="About Taxes are Beautiful — an interactive US federal income tax flow visualizer by Gerry Chu." />
+    <style>
+      *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        background: #f8fafc;
+        color: #0f172a;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+      }
+
+      header {
+        padding: 20px 32px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        border-bottom: 1px solid #e2e8f0;
+        background: white;
+      }
+
+      .logo {
+        font-size: 16px;
+        font-weight: 700;
+        color: #6366f1;
+        letter-spacing: -0.01em;
+        text-decoration: none;
+      }
+
+      .header-link {
+        font-size: 13px;
+        color: #64748b;
+        text-decoration: none;
+      }
+      .header-link:hover { color: #6366f1; }
+
+      main {
+        flex: 1;
+        max-width: 680px;
+        width: 100%;
+        margin: 0 auto;
+        padding: 64px 24px 80px;
+      }
+
+      h1 {
+        font-size: 32px;
+        font-weight: 800;
+        letter-spacing: -0.02em;
+        color: #0f172a;
+        margin-bottom: 8px;
+      }
+
+      .byline {
+        font-size: 14px;
+        color: #64748b;
+        margin-bottom: 32px;
+      }
+
+      .byline a { color: #6366f1; text-decoration: none; }
+      .byline a:hover { text-decoration: underline; }
+
+      p {
+        font-size: 15px;
+        color: #475569;
+        line-height: 1.7;
+        margin-bottom: 20px;
+      }
+
+      h2 {
+        font-size: 18px;
+        font-weight: 700;
+        color: #0f172a;
+        margin: 40px 0 16px;
+      }
+
+      .two-col {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 24px;
+        margin-bottom: 32px;
+      }
+
+      @media (max-width: 480px) {
+        .two-col { grid-template-columns: 1fr; }
+      }
+
+      .support-box {
+        background: white;
+        border: 1px solid #e2e8f0;
+        border-radius: 10px;
+        padding: 20px;
+      }
+
+      .support-box h3 {
+        font-size: 13px;
+        font-weight: 700;
+        color: #0f172a;
+        margin-bottom: 12px;
+      }
+
+      .support-box ul {
+        list-style: disc;
+        padding-left: 18px;
+        font-size: 13px;
+        color: #475569;
+        line-height: 1.9;
+      }
+
+      .support-box.supported h3 { color: #166534; }
+      .support-box.unsupported h3 { color: #991b1b; }
+
+      .disclaimer {
+        background: #fefce8;
+        border: 1px solid #fde047;
+        border-radius: 10px;
+        padding: 16px 20px;
+        font-size: 13px;
+        color: #713f12;
+        line-height: 1.6;
+        margin-bottom: 32px;
+      }
+
+      .cta-row {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        flex-wrap: wrap;
+        margin-top: 40px;
+        padding-top: 32px;
+        border-top: 1px solid #e2e8f0;
+      }
+
+      .cta {
+        display: inline-block;
+        padding: 10px 24px;
+        background: #6366f1;
+        color: white;
+        font-size: 14px;
+        font-weight: 600;
+        border-radius: 8px;
+        text-decoration: none;
+        transition: background 0.15s;
+      }
+      .cta:hover { background: #4f46e5; }
+
+      footer {
+        padding: 20px 32px;
+        text-align: center;
+        font-size: 12px;
+        color: #94a3b8;
+        border-top: 1px solid #e2e8f0;
+        background: white;
+      }
+
+      footer a { color: #6366f1; text-decoration: none; }
+      footer a:hover { text-decoration: underline; }
+    </style>
+  </head>
+  <body>
+    <header>
+      <a class="logo" href="/">Taxes are Beautiful</a>
+    </header>
+
+    <main>
+      <h1>Taxes are Beautiful</h1>
+      <p class="byline">A project by <a href="https://www.gerrychu.com/">Gerry Chu</a></p>
+
+      <div class="disclaimer">
+        Do not use this tool to file or calculate your taxes. It is in no way
+        guaranteed to be complete or accurate. It is a fun visualization tool only.
+      </div>
+      <p>
+        I built this tool for tax planning. To do tax planning, I needed to have 
+        some conception of how income taxes are calculated. I also wondered why inputting some numbers into the tax prep software 
+        changed my income tax, while inputting others didn't change it at all. Clearly 
+        there is a non-linear relationship!
+      </p>
+
+      <p>
+        Conventional tax planning software purposely obscures the nitty-gritty of how 
+        taxes are calculated in the name of simplicity. For good reason! The US tax code is 
+        fiendishly complex and full of loopholes and carve-outs. But if you want to "debug" your return, 
+        you quickly run into
+        <a href="https://www.joelonsoftware.com/2002/11/11/the-law-of-leaky-abstractions/">
+          The Law of Leaky Abstractions</a>.
+      </p>
+      <p>I also felt the step-by-step UI of tax planning 
+          software to be plodding at times. Just let me enter in all the forms I have at at the same time, dammit!
+      </p>
+      <p>Feedback and bug reports are appreciated at <a href="mailto:gerry@gerrychu.com">gerry@gerrychu.com</a>
+      </p>
+      <p>
+        <a href="https://www.buymeacoffee.com/gerrychu" target="_blank" rel="noopener noreferrer">
+          <img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" style="height:38px;width:138px;border-radius:6px;display:block;" />
+        </a>
+      </p>
+
+      <h2>Limitations</h2>
+
+      <div class="two-col">
+        <div class="support-box supported">
+          <h3>Supported</h3>
+          <ul>
+            <li>Single and married filing jointly</li>
+            <li>Income tax, ordinary and preferred</li>
+            <li>Social security tax, overpayments</li>
+            <li>Medicare tax</li>
+            <li>W-2 withholdings</li>
+            <li>Ordinary dividends (qualified and non-qualified)</li>
+            <li>Section 199A dividends</li>
+            <li>QBI, subject to cap</li>
+            <li>Short and long term cap gains and deduction cap</li>
+            <li>Capital loss carryovers, previous and next year</li>
+            <li>Student loan interest, subject to MAGI phaseout</li>
+            <li>Mortgage interest, subject to debt cap</li>
+            <li>Property taxes, subject to cap</li>
+            <li>Other state and local taxes, subject to cap</li>
+            <li>Charitable donations, subject to cap</li>
+          </ul>
+        </div>
+        <div class="support-box unsupported">
+          <h3>Not supported</h3>
+          <ul>
+            <li>Kids and other dependents</li>
+            <li>Earned income tax credit</li>
+            <li>AMT</li>
+            <li>NIIT</li>
+            <li>Estimated tax</li>
+            <li>Rentals</li>
+            <li>Businesses</li>
+            <li>Everything else</li>
+          </ul>
+        </div>
+      </div>
+
+    </main>
+
+    <footer>
+      Built by <a href="mailto:gerry@gerrychu.com">Gerry Chu</a> &nbsp;·&nbsp;
+      Not for tax filing — for educational purposes only
+    </footer>
+  </body>
+</html>

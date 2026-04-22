@@ -38,6 +38,17 @@ const edgeTypes = {
 function TaxFlow() {
   const { documents, filingStatus, overrides, focusedDocId, computed, lastAddedDocId, clearLastAddedDoc, setExpandToDoc, setShowExportMenu, setShowPresetsMenu } = useTaxStore();
   const [openPopover, setOpenPopover] = useState(null);
+  const [canvasTooltip, setCanvasTooltip] = useState(null);
+  const tooltipDisabled = useRef(false);
+  const isOverEdge = useRef(false);
+  const dragCount = useRef(0);
+  const scrollCount = useRef(0);
+  const checkTooltipDisabled = () => {
+    if (dragCount.current >= 2 && scrollCount.current >= 2) {
+      tooltipDisabled.current = true;
+      setCanvasTooltip(null);
+    }
+  };
   const { fitView } = useReactFlow();
   const prevDocCountRef = useRef(documents.length);
 
@@ -265,7 +276,7 @@ function TaxFlow() {
     <div style={{ width: '100%', height: '100%', position: 'relative' }}>
       <ReactFlow
         nodes={nodes}
-        edges={rawEdges}
+        edges={rawEdges.map(e => ({ ...e, data: { ...e.data, onEdgeMouseEnter: () => { isOverEdge.current = true; setCanvasTooltip(null); }, onEdgeMouseLeave: () => { isOverEdge.current = false; } } }))}
         nodeTypes={nodeTypes}
         edgeTypes={edgeTypes}
         fitView
@@ -281,9 +292,37 @@ function TaxFlow() {
         style={{ background: '#f8fafc' }}
         proOptions={{ hideAttribution: true }}
         onPaneClick={() => { setOpenPopover(null); setShowExportMenu(false); setShowPresetsMenu(false); }}
+        onMoveStart={(e) => {
+          if (e?.type === 'wheel') { scrollCount.current += 1; }
+          else { dragCount.current += 1; }
+          checkTooltipDisabled();
+        }}
+        onPaneMouseMove={(e) => { if (!tooltipDisabled.current && !isOverEdge.current) setCanvasTooltip({ x: e.clientX, y: e.clientY }); }}
+        onPaneMouseLeave={() => setCanvasTooltip(null)}
+        onEdgeMouseEnter={() => setCanvasTooltip(null)}
+        onEdgeMouseLeave={() => setCanvasTooltip(null)}
       >
         <FloatingControls />
       </ReactFlow>
+
+      {canvasTooltip && (
+        <div style={{
+          position: 'fixed',
+          top: canvasTooltip.y + 10,
+          left: canvasTooltip.x + 10,
+          zIndex: 100,
+          background: 'rgba(15,23,42,0.75)',
+          color: 'white',
+          fontSize: 12,
+          borderRadius: 6,
+          padding: '6px 10px',
+          pointerEvents: 'none',
+          lineHeight: 1.6,
+          whiteSpace: 'nowrap',
+        }}>
+          Drag to pan<br />Scroll to zoom
+        </div>
+      )}
 
       {openPopover && (
         <OverridePopover

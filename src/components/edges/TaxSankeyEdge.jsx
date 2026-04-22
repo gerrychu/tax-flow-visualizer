@@ -15,7 +15,7 @@ export default function TaxSankeyEdge({
   data = {},
   markerEnd,
 }) {
-  const { color = '#94a3b8', dashed, dotted, amount = 0, isReference, widthPx = 1, sourceOffsetY = 0, targetOffsetY = 0, tooltipLabel, sourceCurvature, targetCurvature } = data;
+  const { color = '#94a3b8', dashed, dotted, amount = 0, isReference, widthPx = 1, sourceOffsetY = 0, targetOffsetY = 0, tooltipLabel, sourceCurvature, targetCurvature, onEdgeMouseEnter, onEdgeMouseLeave } = data;
 
   const sankeyMode = useTaxStore(s => s.sankeyMode);
   const [mouse, setMouse] = useState(null);
@@ -49,9 +49,9 @@ export default function TaxSankeyEdge({
   const isDashed = dashed || dotted || isReference;
 
   const handlers = amount !== 0 ? {
-    onMouseEnter: (e) => setMouse({ x: e.clientX, y: e.clientY }),
+    onMouseEnter: (e) => { onEdgeMouseEnter?.(); setMouse({ x: e.clientX, y: e.clientY }); },
     onMouseMove:  (e) => setMouse({ x: e.clientX, y: e.clientY }),
-    onMouseLeave: ()  => setMouse(null),
+    onMouseLeave: ()  => { onEdgeMouseLeave?.(); setMouse(null); },
   } : {};
 
   return (

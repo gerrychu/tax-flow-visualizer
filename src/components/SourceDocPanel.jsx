@@ -168,6 +168,7 @@ function DocumentCard({ doc, focusNote, onFocusHandled }) {
   }
 
   function handleDelete() {
+    window.umami?.track('Form Deleted', { type: DOC_TYPE_LABELS[doc.type] ?? doc.type });
     deleteDocument(doc.id);
     setContextMenu(null);
   }
@@ -366,7 +367,7 @@ function DocumentCard({ doc, focusNote, onFocusHandled }) {
             <div style={{ fontSize: 13, color: '#64748b', marginBottom: 20 }}>This will remove the {DOC_TYPE_LABELS[doc.type]} form and cannot be undone.</div>
             <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
               <button onClick={() => setShowDeleteConfirm(false)} style={{ padding: '7px 16px', borderRadius: 6, border: '1px solid #e2e8f0', background: 'white', fontSize: 13, cursor: 'pointer', color: '#334155' }}>Cancel</button>
-              <button onClick={() => { deleteDocument(doc.id); setShowDeleteConfirm(false); }} style={{ padding: '7px 16px', borderRadius: 6, border: 'none', background: '#ef4444', color: 'white', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>Delete</button>
+              <button onClick={() => { window.umami?.track('Form Deleted', { type: DOC_TYPE_LABELS[doc.type] ?? doc.type }); deleteDocument(doc.id); setShowDeleteConfirm(false); }} style={{ padding: '7px 16px', borderRadius: 6, border: 'none', background: '#ef4444', color: 'white', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>Delete</button>
             </div>
           </div>
         </div>,
@@ -420,7 +421,7 @@ export default function SourceDocPanel({ width = 220 }) {
           <label style={{ fontSize: 11, color: '#94a3b8', display: 'block', marginBottom: 4 }}>Tax year</label>
           <select
             value={taxYear}
-            onChange={e => setTaxYear(e.target.value)}
+            onChange={e => { setTaxYear(e.target.value); window.umami?.track('Tax Year Changed', { year: e.target.value }); }}
             style={{
               width: '100%',
               padding: '6px 8px',
@@ -443,7 +444,7 @@ export default function SourceDocPanel({ width = 220 }) {
           <label style={{ fontSize: 11, color: '#94a3b8', display: 'block', marginBottom: 4 }}>Filing status</label>
           <select
             value={filingStatus}
-            onChange={e => setFilingStatus(e.target.value)}
+            onChange={e => { setFilingStatus(e.target.value); window.umami?.track('Filing Status Changed', { status: e.target.value }); }}
             style={{
               width: '100%',
               padding: '6px 8px',
@@ -517,7 +518,7 @@ export default function SourceDocPanel({ width = 220 }) {
                       </div>
                     )}
                     <button
-                      onClick={() => { if (!disabled) { setNewDocId(addDocument(type)); setShowPicker(false); } }}
+                      onClick={() => { if (!disabled) { setNewDocId(addDocument(type)); setShowPicker(false); window.umami?.track('Form Added', { type: DOC_TYPE_LABELS[type] ?? type }); } }}
                       style={{
                         display: 'block',
                         width: '100%',

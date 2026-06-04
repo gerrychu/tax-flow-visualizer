@@ -45,7 +45,7 @@ export default function SummaryPanel() {
     }}>
       {/* Header / toggle */}
       <div
-        onClick={() => setExpanded(v => !v)}
+        onClick={() => { setExpanded(v => { window.umami?.track(v ? 'Summary Closed' : 'Summary Opened'); return !v; }); }}
         style={{
           display: 'flex',
           justifyContent: 'space-between',

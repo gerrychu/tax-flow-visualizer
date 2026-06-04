@@ -82,17 +82,18 @@ export default function FloatingControls() {
         gap: 6,
         alignItems: 'center',
       }}>
-        <button style={{ ...btnStyle, color: '#6366f1' }} onClick={() => setShowAbout(true)}>About</button>
-        <button style={{ ...btnStyle, color: '#6366f1' }} onClick={() => setShowLimitations(true)}>Limitations</button>
+        <button style={{ ...btnStyle, color: '#6366f1' }} onClick={() => { setShowAbout(true); window.umami?.track('About Opened'); }}>About</button>
+        <button style={{ ...btnStyle, color: '#6366f1' }} onClick={() => { setShowLimitations(true); window.umami?.track('Limitations Opened'); }}>Limitations</button>
         <div style={{ width: 1, height: 16, background: '#e2e8f0', flexShrink: 0 }} />
         <button style={{ ...btnStyle, color: '#6366f1' }} onClick={() => {
           navigator.clipboard.writeText(window.location.href);
           setCopied(true);
           setTimeout(() => setCopied(false), 2000);
+          window.umami?.track('Link Copied');
           alert('Link copied to clipboard. The link contains all the data you entered encoded within it. This is a way to save the data you entered. Later I will implement a real save feature.');
         }}>{copied ? '✓ Copied!' : 'Save (copy link)'}</button>
         <div ref={exportMenuRef} style={{ position: 'relative' }}>
-          <button style={{ ...btnStyle, color: '#6366f1' }} onClick={() => setShowExportMenu(m => !m)}>Export image</button>
+          <button style={{ ...btnStyle, color: '#6366f1' }} onClick={() => { setShowExportMenu(m => !m); window.umami?.track('Export Opened'); }}>Export image</button>
           {showExportMenu && (
             <div style={{
               position: 'absolute',
@@ -121,6 +122,7 @@ export default function FloatingControls() {
                 }} onClick={async () => {
                   setShowExportMenu(false);
                   setExporting(true);
+                  window.umami?.track(`Export ${label}`, { format: label });
                   try { await fn(getNodes()); } finally { setExporting(false); }
                 }}>{label}</button>
               ))}
@@ -129,7 +131,7 @@ export default function FloatingControls() {
         </div>
         <div style={{ width: 1, height: 16, background: '#e2e8f0', flexShrink: 0 }} />
         <div ref={presetsMenuRef} style={{ position: 'relative' }}>
-          <button style={{ ...btnStyle, color: '#6366f1' }} onClick={() => setShowPresetsMenu(m => !m)}>Examples</button>
+          <button style={{ ...btnStyle, color: '#6366f1' }} onClick={() => { setShowPresetsMenu(m => !m); window.umami?.track('Examples Opened'); }}>Examples</button>
           {showPresetsMenu && (
             <div style={{
               position: 'absolute',
@@ -159,6 +161,7 @@ export default function FloatingControls() {
                 }} onClick={() => {
                   loadScenario(preset);
                   setShowPresetsMenu(false);
+                  window.umami?.track('Example Loaded', { name: preset.name });
                   setTimeout(() => fitView({ padding: 0.12, duration: 500 }), 50);
                 }}>
                   <div>{preset.name}</div>
@@ -168,7 +171,7 @@ export default function FloatingControls() {
             </div>
           )}
         </div>
-        <button style={{ ...btnStyle, color: '#ef4444' }} onClick={() => setShowClearConfirm(true)}>Clear</button>
+        <button style={{ ...btnStyle, color: '#ef4444' }} onClick={() => { setShowClearConfirm(true); window.umami?.track('Clear Initiated'); }}>Clear</button>
       </div>
 
       {showClearConfirm && createPortal(
@@ -178,7 +181,7 @@ export default function FloatingControls() {
             <div style={{ fontSize: 13, color: '#64748b', marginBottom: 20 }}>This will remove all forms and cannot be undone.</div>
             <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
               <button onClick={() => setShowClearConfirm(false)} style={{ padding: '7px 16px', borderRadius: 6, border: '1px solid #e2e8f0', background: 'white', fontSize: 13, cursor: 'pointer', color: '#334155' }}>Cancel</button>
-              <button onClick={() => { clearDocuments(); clearHash(); setShowClearConfirm(false); }} style={{ padding: '7px 16px', borderRadius: 6, border: 'none', background: '#ef4444', color: 'white', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>Clear all</button>
+              <button onClick={() => { clearDocuments(); clearHash(); setShowClearConfirm(false); window.umami?.track('All Forms Cleared'); }} style={{ padding: '7px 16px', borderRadius: 6, border: 'none', background: '#ef4444', color: 'white', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>Clear all</button>
             </div>
           </div>
         </div>,

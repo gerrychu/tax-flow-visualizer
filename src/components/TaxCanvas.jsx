@@ -122,6 +122,7 @@ function TaxFlow() {
   }, [baseNodes, fitView]);
 
   const onNodeClick = (_evt, node) => {
+    window.umami?.track('Node Clicked', { label: node.data?.label });
     if (node.data?.sourceDocId) {
       setExpandToDoc(node.data.sourceDocId);
       setSelectedDoc(node.data.sourceDocId);
@@ -135,6 +136,7 @@ function TaxFlow() {
   }, [setSelectedNode]);
 
   const onEdgeClick = useCallback((_evt, edge) => {
+    window.umami?.track('Edge Clicked', { label: edge.data?.tooltipLabel });
     setSelectedNode(null);
     const src = getNode(edge.source);
     const tgt = getNode(edge.target);
@@ -355,6 +357,7 @@ function TaxFlow() {
         onNodeClick={onNodeClick}
         onSelectionChange={onSelectionChange}
         onEdgeClick={onEdgeClick}
+        onNodeDragStop={(_evt, node) => window.umami?.track('Node Dragged', { label: node.data?.label })}
         nodesConnectable={false}
         nodesDraggable={nodesDraggable}
         panOnDrag

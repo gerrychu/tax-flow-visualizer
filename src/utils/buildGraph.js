@@ -1476,6 +1476,16 @@ export function buildGraph(documents, _filingStatus, _overrides, computed, focus
     ],
   }));
 
+  nodes.push({
+    id: 'zone-label-refund',
+    type: 'zoneLabel',
+    position: { x: nodeX(5, 1 + numDynamicSubColsZ5), y: 60 },
+    data: { label: adjustedIsRefund ? 'Refund' : 'Amount owed' },
+    draggable: false,
+    selectable: false,
+    focusable: false,
+  });
+
   edges.push(makeEdge(eid(), totalTaxId, refundId, EDGE_COLORS.bracket, computed.totalTax, { tooltipLabel: 'Total income tax' }));
   if (withholdingId) {
     edges.push(makeEdge(eid(), withholdingId, refundId, EDGE_COLORS.withholding, computed.w2Withheld, { tooltipLabel: 'Income tax withheld' }));
@@ -1527,6 +1537,99 @@ export function buildGraph(documents, _filingStatus, _overrides, computed, focus
       style: { border: 'none', background: 'none', padding: 0 },
     });
   });
+
+  // Zone label nodes
+  nodes.push({
+    id: 'zone-label-1',
+    type: 'zoneLabel',
+    position: { x: nodeX(1, 0), y: 60 },
+    data: { label: 'Forms' },
+    draggable: false,
+    selectable: false,
+    focusable: false,
+  });
+  nodes.push({
+    id: 'zone-label-2',
+    type: 'zoneLabel',
+    position: { x: nodeX(2, 0), y: 60 },
+    data: { label: 'Aggregation' },
+    draggable: false,
+    selectable: false,
+    focusable: false,
+  });
+  nodes.push({
+    id: 'zone-label-3',
+    type: 'zoneLabel',
+    position: { x: nodeX(3, 0), y: 60 },
+    data: { label: 'Taxable income & Deduction' },
+    draggable: false,
+    selectable: false,
+    focusable: false,
+  });
+  nodes.push({
+    id: 'zone-label-4',
+    type: 'zoneLabel',
+    position: { x: nodeX(4, 0), y: 60 },
+    data: { label: 'Tax brackets' },
+    draggable: false,
+    selectable: false,
+    focusable: false,
+  });
+  nodes.push({
+    id: 'zone-label-5',
+    type: 'zoneLabel',
+    position: { x: nodeX(5, 0), y: 60 },
+    data: { label: 'Total tax' },
+    draggable: false,
+    selectable: false,
+    focusable: false,
+  });
+  if (prefBracketData.length > 0) {
+    nodes.push({
+      id: 'zone-label-pref',
+      type: 'zoneSubLabel',
+      position: { x: nodeX(4, 1), y: 0 },
+      data: { label: 'Preferential' },
+      draggable: false,
+      selectable: false,
+      focusable: false,
+    });
+  }
+  const ssWagesDocs = w2s.filter(d => (parseFloat(d.fields.box3) || 0) > 0);
+  if (ssWagesDocs.length > 0) {
+    nodes.push({
+      id: 'zone-label-ss',
+      type: 'zoneSubLabel',
+      position: { x: nodeX(1, 0), y: 0 },
+      data: { label: 'Social Security' },
+      draggable: false,
+      selectable: false,
+      focusable: false,
+    });
+  }
+  const hasMedWages = w2s.some(d => (parseFloat(d.fields.box5) || 0) > 0);
+  if (hasMedWages) {
+    nodes.push({
+      id: 'zone-label-med',
+      type: 'zoneSubLabel',
+      position: { x: nodeX(1, 0), y: 0 },
+      data: { label: 'Medicare' },
+      draggable: false,
+      selectable: false,
+      focusable: false,
+    });
+  }
+  if (withholdingSourceIds.length > 0) {
+    nodes.push({
+      id: 'zone-label-5-whg',
+      type: 'zoneLabel',
+      position: { x: nodeX(5, 1), y: 60 },
+      data: { label: 'Withholding' },
+      draggable: false,
+      selectable: false,
+      focusable: false,
+    });
+  }
 
   // Assign y-positions
   assignYPositions(nodes);
@@ -2216,7 +2319,7 @@ function repositionZone1SourceNodes(nodes, docTypeGroups, docTypeZone2NodeIds, g
 function assignYPositions(nodes) {
   const colMap = {};
   for (const node of nodes) {
-    if (node.type === 'zoneDivider') continue;
+    if (node.type === 'zoneDivider' || node.type === 'zoneLabel' || node.type === 'zoneSubLabel') continue;
     const key = `${node.data.zone}-${node.data.subCol}`;
     if (!colMap[key]) colMap[key] = [];
     colMap[key].push(node);

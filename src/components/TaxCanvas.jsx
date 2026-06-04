@@ -20,6 +20,8 @@ import TaxBracketNode from './nodes/TaxBracketNode';
 import TaxDeductionNode from './nodes/TaxDeductionNode';
 import TaxResultNode from './nodes/TaxResultNode';
 import ZoneDividerNode from './nodes/ZoneDividerNode';
+import ZoneLabelNode from './nodes/ZoneLabelNode';
+import ZoneSubLabelNode from './nodes/ZoneSubLabelNode';
 import TaxSankeyEdge from './edges/TaxSankeyEdge';
 import FloatingControls from './FloatingControls';
 import OverridePopover from './OverridePopover';
@@ -31,6 +33,8 @@ const nodeTypes = {
   taxDeduction: TaxDeductionNode,
   taxResult: TaxResultNode,
   zoneDivider: ZoneDividerNode,
+  zoneLabel: ZoneLabelNode,
+  zoneSubLabel: ZoneSubLabelNode,
 };
 
 const edgeTypes = {
@@ -160,11 +164,17 @@ function TaxFlow() {
       }
 
       // Compute LTCG bracket start Y: below the deduct-bracket node + 2× gap.
+      // Extra 100px added when a "Preferential brackets" label is present.
       const deductBracketNode = nds.find(n => n.id === 'deduct-bracket');
+      const hasPrefLabel = nds.some(n => n.id === 'zone-label-pref');
       let prefStartY = null;
       if (deductBracketNode?.measured?.height) {
         const bracketY = posMap['deduct-bracket'] ?? deductBracketNode.position.y;
-        prefStartY = bracketY + deductBracketNode.measured.height + NODE_V_GAP * 2;
+        prefStartY = bracketY + deductBracketNode.measured.height + NODE_V_GAP * 2 + (hasPrefLabel ? 50 : 0);
+      }
+      if (hasPrefLabel && prefStartY !== null) {
+        const labelX = bracketColNodes.length > 0 ? bracketColNodes[0].position.x : nds.find(n => n.id === 'zone-label-pref').position.x;
+        posMap['zone-label-pref'] = { x: labelX, y: prefStartY - 45 };
       }
 
       // Re-stack zone-4 subCol-1 LTCG bracket nodes:
@@ -207,6 +217,8 @@ function TaxFlow() {
         posMap['amount-keep'] = totalTax.position.y + totalTax.measured.height + NODE_V_GAP;
       }
 
+      const WAGES_LABEL_OFFSET = 50;
+
       // Compute actual bracket column bottom from zone-4 subCol-0 and subCol-1 nodes,
       // now that they've been restacked above with real measured heights.
       // This is used to push W-2 SS wages and W-2 Medicare wages groups (zone 1) below
@@ -237,7 +249,13 @@ function TaxFlow() {
           return (posMap[last.id] ?? last.position.y) + (last.measured?.height ?? 80);
         };
 
+        const hasSSLabel = nds.some(n => n.id === 'zone-label-ss');
         const ssBottom = nudgeWagesGroup('ss', actualBracketColBottom + NODE_V_GAP * 2);
+        if (hasSSLabel) {
+          nds.filter(n => n.data?.wagesGroup === 'ss' || n.data?.ySyncGroup === 'ss-wages').forEach(n => {
+            posMap[n.id] = (posMap[n.id] ?? n.position.y) + WAGES_LABEL_OFFSET;
+          });
+        }
 
         // Restack SS WHG nodes BEFORE nudging Medicare wages so their actual bottom
         // can be incorporated into medMinY.
@@ -286,6 +304,27 @@ function TaxFlow() {
             posMap['med-whg-agg'] = posMap[medWhgSourceNodes[0].id] ?? medWhgSourceNodes[0].position.y;
           }
         }
+      }
+
+      // Position "Social Security" sub-label above the first SS wages node.
+      const firstSsWagesNode = nds
+        .filter(n => n.data?.wagesGroup === 'ss')
+        .sort((a, b) => a.position.y - b.position.y)[0];
+      if (firstSsWagesNode && nds.some(n => n.id === 'zone-label-ss')) {
+        const ssY = posMap[firstSsWagesNode.id] ?? firstSsWagesNode.position.y;
+        posMap['zone-label-ss'] = { x: firstSsWagesNode.position.x, y: ssY - 45 };
+      }
+
+      // Position "Medicare" sub-label above the first Medicare wages node.
+      const firstMedWagesLabelNode = nds
+        .filter(n => n.data?.wagesGroup === 'med')
+        .sort((a, b) => a.position.y - b.position.y)[0];
+      if (firstMedWagesLabelNode && nds.some(n => n.id === 'zone-label-med')) {
+        nds.filter(n => n.data?.wagesGroup === 'med' || n.data?.ySyncGroup === 'med-wages').forEach(n => {
+          posMap[n.id] = (posMap[n.id] ?? n.position.y);
+        });
+        const medY = posMap[firstMedWagesLabelNode.id] ?? firstMedWagesLabelNode.position.y;
+        posMap['zone-label-med'] = { x: firstMedWagesLabelNode.position.x, y: medY - 45 };
       }
 
       if (Object.keys(posMap).length === 0) return nds;

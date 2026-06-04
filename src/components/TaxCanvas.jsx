@@ -1,10 +1,12 @@
-import { useMemo, useState, useEffect, useRef } from 'react';
+import { useMemo, useState, useEffect, useRef, useCallback } from 'react';
 import {
   ReactFlow,
   ReactFlowProvider,
   useReactFlow,
   useNodesInitialized,
   applyNodeChanges,
+  Controls,
+  ControlButton,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 
@@ -36,9 +38,11 @@ const edgeTypes = {
 };
 
 function TaxFlow() {
-  const { documents, filingStatus, overrides, focusedDocId, computed, lastAddedDocId, clearLastAddedDoc, setExpandToDoc, setShowExportMenu, setShowPresetsMenu } = useTaxStore();
+  const { documents, filingStatus, overrides, focusedDocId, computed, lastAddedDocId, clearLastAddedDoc, setExpandToDoc, setShowExportMenu, setShowPresetsMenu, setSelectedNode } = useTaxStore();
   const [openPopover, setOpenPopover] = useState(null);
   const [canvasTooltip, setCanvasTooltip] = useState(null);
+  const [nodesDraggable, setNodesDraggable] = useState(false);
+  const [layoutKey, setLayoutKey] = useState(0);
   const tooltipDisabled = useRef(false);
   const isOverEdge = useRef(false);
   const dragCount = useRef(0);
@@ -49,7 +53,7 @@ function TaxFlow() {
       setCanvasTooltip(null);
     }
   };
-  const { fitView } = useReactFlow();
+  const { fitView, fitBounds, getNode } = useReactFlow();
   const prevDocCountRef = useRef(documents.length);
 
   // Build graph data — sankeyMode handled per-edge via Zustand subscription
@@ -107,9 +111,31 @@ function TaxFlow() {
   const onNodesChange = (changes) =>
     setNodes(nds => applyNodeChanges(changes, nds));
 
+  const handleResetView = useCallback(() => {
+    setNodes(baseNodes);
+    setLayoutKey(k => k + 1);
+    setTimeout(() => fitView({ padding: 0.12, duration: 500 }), 100);
+  }, [baseNodes, fitView]);
+
   const onNodeClick = (_evt, node) => {
     if (node.data?.sourceDocId) setExpandToDoc(node.data.sourceDocId);
   };
+
+  const onSelectionChange = useCallback(({ nodes: selected }) => {
+    setSelectedNode(selected.length === 1 ? selected[0].id : null);
+  }, [setSelectedNode]);
+
+  const onEdgeClick = useCallback((_evt, edge) => {
+    setSelectedNode(null);
+    const src = getNode(edge.source);
+    const tgt = getNode(edge.target);
+    if (!src || !tgt) return;
+    const x1 = Math.min(src.position.x, tgt.position.x);
+    const y1 = Math.min(src.position.y, tgt.position.y);
+    const x2 = Math.max(src.position.x + (src.measured?.width ?? 190), tgt.position.x + (tgt.measured?.width ?? 190));
+    const y2 = Math.max(src.position.y + (src.measured?.height ?? 80), tgt.position.y + (tgt.measured?.height ?? 80));
+    fitBounds({ x: x1, y: y1, width: x2 - x1, height: y2 - y1 }, { padding: 0.08, duration: 500 });
+  }, [getNode, fitBounds, setSelectedNode]);
 
   // After React Flow measures actual DOM heights, apply exact NODE_V_GAP spacing
   // between nodes whose positions are derived from other nodes' heights.
@@ -270,7 +296,7 @@ function TaxFlow() {
         return { ...n, position: { ...n.position, y: p } };
       });
     });
-  }, [nodesInitialized]);
+  }, [nodesInitialized, layoutKey]);
 
   return (
     <div style={{ width: '100%', height: '100%', position: 'relative' }}>
@@ -283,15 +309,17 @@ function TaxFlow() {
         fitViewOptions={{ padding: 0.12 }}
         onNodesChange={onNodesChange}
         onNodeClick={onNodeClick}
+        onSelectionChange={onSelectionChange}
+        onEdgeClick={onEdgeClick}
         nodesConnectable={false}
-        elementsSelectable={false}
+        nodesDraggable={nodesDraggable}
         panOnDrag
         zoomOnScroll
         minZoom={0.15}
         maxZoom={2}
         style={{ background: '#f8fafc' }}
         proOptions={{ hideAttribution: true }}
-        onPaneClick={() => { setOpenPopover(null); setShowExportMenu(false); setShowPresetsMenu(false); }}
+        onPaneClick={() => { setOpenPopover(null); setShowExportMenu(false); setShowPresetsMenu(false); setSelectedNode(null); }}
         onMoveStart={(e) => {
           if (e?.type === 'wheel') { scrollCount.current += 1; }
           else { dragCount.current += 1; }
@@ -302,6 +330,25 @@ function TaxFlow() {
         onEdgeMouseEnter={() => setCanvasTooltip(null)}
         onEdgeMouseLeave={() => setCanvasTooltip(null)}
       >
+        <Controls showInteractive={false}>
+          <ControlButton onClick={handleResetView} title="Reset layout">
+            <svg viewBox="0 0 24 24" fill="currentColor">
+              <path d="M17.65 6.35A7.958 7.958 0 0 0 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08A5.99 5.99 0 0 1 12 18c-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/>
+            </svg>
+          </ControlButton>
+          <ControlButton onClick={() => setNodesDraggable(d => !d)} title={nodesDraggable ? 'Lock nodes' : 'Unlock nodes'}>
+            {nodesDraggable ? (
+              <svg viewBox="0 -2 24 26" fill="currentColor">
+                <path d="M18 8H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2z"/>
+                <path d="M7 8V4a5 5 0 0 1 10 0" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+              </svg>
+            ) : (
+              <svg viewBox="0 0 24 24" fill="currentColor">
+                <path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/>
+              </svg>
+            )}
+          </ControlButton>
+        </Controls>
         <FloatingControls />
       </ReactFlow>
 
@@ -311,7 +358,7 @@ function TaxFlow() {
           top: canvasTooltip.y + 10,
           left: canvasTooltip.x + 10,
           zIndex: 100,
-          background: 'rgba(15,23,42,0.75)',
+          background: 'rgba(100,116,139,0.85)',
           color: 'white',
           fontSize: 12,
           borderRadius: 6,
@@ -320,7 +367,7 @@ function TaxFlow() {
           lineHeight: 1.6,
           whiteSpace: 'nowrap',
         }}>
-          Drag to pan<br />Scroll to zoom
+          🔍 Scroll to zoom<br />✥ Drag to pan<br />Like Google Maps
         </div>
       )}
 

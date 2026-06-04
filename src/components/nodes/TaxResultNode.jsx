@@ -1,17 +1,18 @@
 import { Handle, Position } from '@xyflow/react';
 import { formatCurrency } from '../../utils/format';
 
-export default function TaxResultNode({ data }) {
+export default function TaxResultNode({ data, selected }) {
   const { label, amount, isRefund, isKeep, rows = [] } = data;
 
   const color = isKeep ? '#15803d' : isRefund ? '#15803d' : '#dc2626';
   const bg = isKeep ? '#f0fdf4' : isRefund ? '#f0fdf4' : '#fef2f2';
-  const border = isKeep ? '#bbf7d0' : isRefund ? '#bbf7d0' : '#fecaca';
+  const border = selected ? '#3b82f6' : isKeep ? '#bbf7d0' : isRefund ? '#bbf7d0' : '#fecaca';
+  const borderWidth = selected ? '2px' : '1.5px';
 
   return (
     <div
       className="tax-node"
-      style={{ minWidth: 190, border: `1.5px solid ${border}`, background: bg }}
+      style={{ minWidth: 190, border: `${borderWidth} solid ${border}`, background: bg, boxShadow: selected ? '0 0 0 3px rgba(59,130,246,0.2)' : undefined }}
     >
       <div className="tax-node-header" style={{ color: color, borderBottom: `1px solid ${border}` }}>
         {label}

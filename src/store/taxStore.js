@@ -3,41 +3,70 @@ import { nanoid } from 'nanoid';
 import { decodeStateFromHash } from '../utils/urlState';
 import { PRESETS } from '../utils/presets';
 
-// ─── Tax brackets 2025 ───────────────────────────────────────────────────────
-const BRACKETS = {
-  single: [
-    { rate: 0.10, upTo: 11925 },
-    { rate: 0.12, upTo: 48475 },
-    { rate: 0.22, upTo: 103350 },
-    { rate: 0.24, upTo: 197300 },
-    { rate: 0.32, upTo: 250525 },
-    { rate: 0.35, upTo: 626350 },
-    { rate: 0.37, upTo: Infinity },
-  ],
-  mfj: [
-    { rate: 0.10, upTo: 23850 },
-    { rate: 0.12, upTo: 96950 },
-    { rate: 0.22, upTo: 206700 },
-    { rate: 0.24, upTo: 394600 },
-    { rate: 0.32, upTo: 501050 },
-    { rate: 0.35, upTo: 751600 },
-    { rate: 0.37, upTo: Infinity },
-  ],
-};
-
-const STANDARD_DEDUCTION = { single: 15000, mfj: 30000 };
-
-const LTCG_THRESHOLDS = {
-  single: { rate0: 48350, rate15: 533400 },
-  mfj: { rate0: 96700, rate15: 600050 },
+// ─── Per-year tax parameters ──────────────────────────────────────────────────
+const TAX_YEAR_DATA = {
+  '2025': {
+    brackets: {
+      single: [
+        { rate: 0.10, upTo: 11925 },
+        { rate: 0.12, upTo: 48475 },
+        { rate: 0.22, upTo: 103350 },
+        { rate: 0.24, upTo: 197300 },
+        { rate: 0.32, upTo: 250525 },
+        { rate: 0.35, upTo: 626350 },
+        { rate: 0.37, upTo: Infinity },
+      ],
+      mfj: [
+        { rate: 0.10, upTo: 23850 },
+        { rate: 0.12, upTo: 96950 },
+        { rate: 0.22, upTo: 206700 },
+        { rate: 0.24, upTo: 394600 },
+        { rate: 0.32, upTo: 501050 },
+        { rate: 0.35, upTo: 751600 },
+        { rate: 0.37, upTo: Infinity },
+      ],
+    },
+    standardDeduction: { single: 15750, mfj: 31500 },
+    ltcgThresholds: {
+      single: { rate0: 48350, rate15: 533400 },
+      mfj: { rate0: 96700, rate15: 600050 },
+    },
+  },
+  '2026': {
+    brackets: {
+      single: [
+        { rate: 0.10, upTo: 12400 },
+        { rate: 0.12, upTo: 50400 },
+        { rate: 0.22, upTo: 105700 },
+        { rate: 0.24, upTo: 201775 },
+        { rate: 0.32, upTo: 256225 },
+        { rate: 0.35, upTo: 640600 },
+        { rate: 0.37, upTo: Infinity },
+      ],
+      mfj: [
+        { rate: 0.10, upTo: 24800 },
+        { rate: 0.12, upTo: 100800 },
+        { rate: 0.22, upTo: 211400 },
+        { rate: 0.24, upTo: 403550 },
+        { rate: 0.32, upTo: 512450 },
+        { rate: 0.35, upTo: 768700 },
+        { rate: 0.37, upTo: Infinity },
+      ],
+    },
+    standardDeduction: { single: 16100, mfj: 32200 },
+    ltcgThresholds: {
+      single: { rate0: 50400, rate15: 553800 },
+      mfj: { rate0: 100800, rate15: 623050 },
+    },
+  },
 };
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 function clampPositive(v) { return Math.max(0, v || 0); }
 function num(v) { return parseFloat(v) || 0; }
 
-function calcBracketTax(taxableIncome, filingStatus) {
-  const brackets = BRACKETS[filingStatus];
+function calcBracketTax(taxableIncome, filingStatus, brackets) {
+  brackets = brackets[filingStatus];
   const results = [];
   let remaining = Math.max(0, taxableIncome);
   let prev = 0;
@@ -76,8 +105,8 @@ function calcBracketTax(taxableIncome, filingStatus) {
 // Returns 3 bracket entries (highest rate first) for LTCG income stacked on top of
 // ordinary taxable income. Brackets where ordinary income already fills the range have
 // income=0 (node shown, no edges).
-function calcPrefBrackets(ltcgIncome, ordinaryTaxableIncome, filingStatus) {
-  const { rate0, rate15 } = LTCG_THRESHOLDS[filingStatus];
+function calcPrefBrackets(ltcgIncome, ordinaryTaxableIncome, filingStatus, ltcgThresholds) {
+  const { rate0, rate15 } = ltcgThresholds[filingStatus];
   // Process lowest → highest so LTCG fills cheaper brackets first
   const tiers = [
     { rate: 0.00, from: 0,      to: rate0    },
@@ -97,7 +126,8 @@ function calcPrefBrackets(ltcgIncome, ordinaryTaxableIncome, filingStatus) {
 }
 
 // ─── recalculate ─────────────────────────────────────────────────────────────
-function recalculate(documents, filingStatus, overrides) {
+function recalculate(documents, filingStatus, overrides, taxYear = '2026') {
+  const { brackets: BRACKETS, standardDeduction: STANDARD_DEDUCTION, ltcgThresholds: LTCG_THRESHOLDS } = TAX_YEAR_DATA[taxYear] || TAX_YEAR_DATA['2026'];
   // Group documents by type
   const byType = {};
   for (const doc of documents) {
@@ -328,14 +358,14 @@ function recalculate(documents, filingStatus, overrides) {
   const taxableIncome = Math.max(0, agi - deductionUsed);
 
   // ── Bracket tax ──
-  const bracketResults = calcBracketTax(taxableIncome, filingStatus);
+  const bracketResults = calcBracketTax(taxableIncome, filingStatus, BRACKETS);
   const ordinaryTax = bracketResults.reduce((s, b) => s + b.tax, 0);
 
   // ── LTCG tax ──
   // Ordinary income for LTCG bracket stacking = total income minus long-term capital gains.
   // totalOrdinaryIncome already excludes ltAfterNetting (LTCG is tracked separately).
   const ordinaryTaxableIncome = totalOrdinaryIncome;
-  const prefBracketResults = calcPrefBrackets(ltcgForPreferential, ordinaryTaxableIncome, filingStatus);
+  const prefBracketResults = calcPrefBrackets(ltcgForPreferential, ordinaryTaxableIncome, filingStatus, LTCG_THRESHOLDS);
   const prefTax = prefBracketResults.reduce((s, b) => s + b.tax, 0);
 
   // ── Social Security overpayment ──
@@ -542,16 +572,19 @@ const _initDocs = _fromHash
   : _defaultPreset.documents.map(d => ({ ...d, id: nanoid() }));
 const _initStatus = _fromHash?.filingStatus ?? _defaultPreset.filingStatus;
 const _initOverrides = _fromHash?.overrides ?? _defaultPreset.overrides;
+const _initTaxYear = _fromHash?.taxYear ?? '2026';
 
 export const useTaxStore = create((set) => ({
   documents: _initDocs,
   filingStatus: _initStatus,
   overrides: _initOverrides,
+  taxYear: _initTaxYear,
   focusedDocId: null,
   expandToDocId: null,
+  selectedNodeId: null,
   sankeyMode: true,
   lastAddedDocId: null,
-  computed: recalculate(_initDocs, _initStatus, _initOverrides),
+  computed: recalculate(_initDocs, _initStatus, _initOverrides, _initTaxYear),
 
   addDocument: (type) => {
     const defaultFields = {};
@@ -559,7 +592,7 @@ export const useTaxStore = create((set) => ({
     const doc = { id: nanoid(), type, note: '', fields: defaultFields };
     set(state => {
       const docs = [...state.documents, doc];
-      return { documents: docs, lastAddedDocId: doc.id, computed: recalculate(docs, state.filingStatus, state.overrides) };
+      return { documents: docs, lastAddedDocId: doc.id, computed: recalculate(docs, state.filingStatus, state.overrides, state.taxYear) };
     });
     return doc.id;
   },
@@ -572,7 +605,7 @@ export const useTaxStore = create((set) => ({
       return {
         documents: docs,
         focusedDocId: state.focusedDocId === id ? null : state.focusedDocId,
-        computed: recalculate(docs, state.filingStatus, state.overrides),
+        computed: recalculate(docs, state.filingStatus, state.overrides, state.taxYear),
       };
     });
   },
@@ -584,42 +617,51 @@ export const useTaxStore = create((set) => ({
         if (patch.fields) return { ...d, fields: { ...d.fields, ...patch.fields } };
         return { ...d, ...patch };
       });
-      return { documents: docs, computed: recalculate(docs, state.filingStatus, state.overrides) };
+      return { documents: docs, computed: recalculate(docs, state.filingStatus, state.overrides, state.taxYear) };
     });
   },
 
   setFilingStatus: (status) => {
     set(state => ({
       filingStatus: status,
-      computed: recalculate(state.documents, status, state.overrides),
+      computed: recalculate(state.documents, status, state.overrides, state.taxYear),
+    }));
+  },
+
+  setTaxYear: (year) => {
+    set(state => ({
+      taxYear: year,
+      computed: recalculate(state.documents, state.filingStatus, state.overrides, year),
     }));
   },
 
   setOverride: (key, value) => {
     set(state => {
       const overrides = { ...state.overrides, [key]: value };
-      return { overrides, computed: recalculate(state.documents, state.filingStatus, overrides) };
+      return { overrides, computed: recalculate(state.documents, state.filingStatus, overrides, state.taxYear) };
     });
   },
 
   // Load a full scenario (preset or URL-decoded). Documents get fresh IDs.
-  loadScenario: ({ documents, filingStatus, overrides = {} }) => {
+  loadScenario: ({ documents, filingStatus, overrides = {}, taxYear = '2026' }) => {
     const docs = documents.map(d => ({ ...d, id: nanoid() }));
     set({
       documents: docs,
       filingStatus,
       overrides,
+      taxYear,
       focusedDocId: null,
       expandToDocId: null,
-      computed: recalculate(docs, filingStatus, overrides),
+      computed: recalculate(docs, filingStatus, overrides, taxYear),
     });
   },
 
   clearDocuments: () => {
-    set(state => ({ documents: [], focusedDocId: null, computed: recalculate([], state.filingStatus, state.overrides) }));
+    set(state => ({ documents: [], focusedDocId: null, computed: recalculate([], state.filingStatus, state.overrides, state.taxYear) }));
   },
 
   setFocusedDoc: (id) => set({ focusedDocId: id }),
+  setSelectedNode: (id) => set({ selectedNodeId: id }),
   setExpandToDoc: (id) => set({ expandToDocId: id }),
   clearExpandToDoc: () => set({ expandToDocId: null }),
   setSankeyMode: (v) => set({ sankeyMode: v }),

@@ -46,7 +46,6 @@ function makeNode(id, zone, subCol, type, data) {
     type,
     position: { x: nodeX(zone, subCol), y: 0 },
     data: { ...data, zone, subCol },
-    draggable: true,
   };
 }
 
@@ -2041,7 +2040,7 @@ export function buildGraph(documents, _filingStatus, _overrides, computed, focus
     }
   }
 
-  return { nodes, edges };
+  return { nodes, edges: computed.agi === 0 ? [] : edges };
 }
 
 function syncKeepY(nodes, keepId, totalTaxId) {

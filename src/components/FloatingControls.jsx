@@ -8,20 +8,21 @@ import { encodeStateToHash, clearHash } from '../utils/urlState';
 
 export default function FloatingControls() {
   const { getNodes, fitView } = useReactFlow();
-  const { showExportMenu, setShowExportMenu, showPresetsMenu, setShowPresetsMenu, loadScenario, clearDocuments, documents, filingStatus, overrides } = useTaxStore();
+  const { showExportMenu, setShowExportMenu, showPresetsMenu, setShowPresetsMenu, loadScenario, clearDocuments, documents, filingStatus, overrides, taxYear } = useTaxStore();
   const [exporting, setExporting] = useState(false);
+  const [showClearConfirm, setShowClearConfirm] = useState(false);
   const exportMenuRef = useRef(null);
   const presetsMenuRef = useRef(null);
   const [copied, setCopied] = useState(false);
 
-  // Sync state to URL hash whenever documents/filingStatus/overrides change.
+  // Sync state to URL hash whenever documents/filingStatus/overrides/taxYear change.
   useEffect(() => {
     if (documents.length === 0) {
       clearHash();
     } else {
-      encodeStateToHash(documents, filingStatus, overrides);
+      encodeStateToHash(documents, filingStatus, overrides, taxYear);
     }
-  }, [documents, filingStatus, overrides]);
+  }, [documents, filingStatus, overrides, taxYear]);
 
   useEffect(() => {
     if (!showExportMenu) return;
@@ -88,9 +89,10 @@ export default function FloatingControls() {
           navigator.clipboard.writeText(window.location.href);
           setCopied(true);
           setTimeout(() => setCopied(false), 2000);
-        }}>{copied ? '✓ Copied!' : 'Copy link'}</button>
+          alert('Link copied to clipboard. The link contains all the data you entered encoded within it. This is a way to save the data you entered. Later I will implement a real save feature.');
+        }}>{copied ? '✓ Copied!' : 'Save (copy link)'}</button>
         <div ref={exportMenuRef} style={{ position: 'relative' }}>
-          <button style={{ ...btnStyle, color: '#6366f1' }} onClick={() => setShowExportMenu(m => !m)}>Export</button>
+          <button style={{ ...btnStyle, color: '#6366f1' }} onClick={() => setShowExportMenu(m => !m)}>Export image</button>
           {showExportMenu && (
             <div style={{
               position: 'absolute',
@@ -166,8 +168,22 @@ export default function FloatingControls() {
             </div>
           )}
         </div>
-        <button style={{ ...btnStyle, color: '#ef4444' }} onClick={() => { clearDocuments(); clearHash(); }}>Clear</button>
+        <button style={{ ...btnStyle, color: '#ef4444' }} onClick={() => setShowClearConfirm(true)}>Clear</button>
       </div>
+
+      {showClearConfirm && createPortal(
+        <div style={{ position: 'fixed', inset: 0, zIndex: 9999, background: 'rgba(0,0,0,0.35)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div style={{ background: 'white', borderRadius: 10, padding: '24px 28px', maxWidth: 320, width: '90%', boxShadow: '0 8px 32px rgba(0,0,0,0.18)' }}>
+            <div style={{ fontSize: 15, fontWeight: 600, color: '#0f172a', marginBottom: 8 }}>Clear all forms?</div>
+            <div style={{ fontSize: 13, color: '#64748b', marginBottom: 20 }}>This will remove all forms and cannot be undone.</div>
+            <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+              <button onClick={() => setShowClearConfirm(false)} style={{ padding: '7px 16px', borderRadius: 6, border: '1px solid #e2e8f0', background: 'white', fontSize: 13, cursor: 'pointer', color: '#334155' }}>Cancel</button>
+              <button onClick={() => { clearDocuments(); clearHash(); setShowClearConfirm(false); }} style={{ padding: '7px 16px', borderRadius: 6, border: 'none', background: '#ef4444', color: 'white', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>Clear all</button>
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
 
       {showMobileWarning && createPortal(
         <div style={{
@@ -356,6 +372,7 @@ export default function FloatingControls() {
                   <li>AMT</li>
                   <li>NIIT</li>
                   <li>Estimated tax</li>
+                  <li>Retirement income</li>
                   <li>Rentals</li>
                   <li>Businesses</li>
                   <li>Everything else</li>

@@ -1,12 +1,12 @@
 import { Handle, Position } from '@xyflow/react';
 import { formatCurrency } from '../../utils/format';
 
-export default function TaxSourceNode({ data }) {
+export default function TaxSourceNode({ data, selected }) {
   const { label, rows = [], highlighted } = data;
 
   return (
     <div
-      className={`tax-node ${highlighted ? 'highlighted' : ''}`}
+      className={`tax-node ${highlighted ? 'highlighted' : ''} ${selected ? 'selected' : ''}`}
       style={{ minWidth: 190 }}
     >
       <div className="tax-node-header" style={{ color: '#475569' }}>{label}</div>

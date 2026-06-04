@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { useTaxStore, DOC_FIELDS, DOC_TYPE_ORDER } from '../store/taxStore';
 
 const DOC_TYPE_LABELS = {
@@ -24,6 +25,7 @@ const NOTE_PLACEHOLDERS = {
   'State and local taxes': 'State income tax / sales tax',
   'Charitable donation': 'Charity name',
   '1099-B': 'Investment',
+  'Other taxable income': 'Trad IRA and pension distributions',
   'Adjustments to income': 'Trad IRA contrib & HSA contrib, self-employment tax & health insurance',
   '1098-E': 'Student loan company',
 };
@@ -111,8 +113,11 @@ function DocumentCard({ doc, focusNote, onFocusHandled }) {
   const { updateDocument, deleteDocument, setFocusedDoc, focusedDocId, expandToDocId, clearExpandToDoc } = useTaxStore();
   const [collapsed, setCollapsed] = useState(false);
   const [contextMenu, setContextMenu] = useState(null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const cardRef = useRef(null);
   const noteInputRef = useRef(null);
+  const contextMenuRef = useRef(null);
+  const suppressNextClick = useRef(false);
   const isFocused = focusedDocId === doc.id;
 
   useEffect(() => {
@@ -135,12 +140,25 @@ function DocumentCard({ doc, focusNote, onFocusHandled }) {
 
   useEffect(() => {
     function handleClick(e) {
-      if (contextMenu && cardRef.current && !cardRef.current.contains(e.target)) {
+      if (suppressNextClick.current) {
+        suppressNextClick.current = false;
+        e.stopPropagation();
+      }
+    }
+    document.addEventListener('click', handleClick, true);
+    return () => document.removeEventListener('click', handleClick, true);
+  }, []);
+
+  useEffect(() => {
+    if (!contextMenu) return;
+    function handleMouseDown(e) {
+      if (!contextMenuRef.current?.contains(e.target)) {
+        if (cardRef.current?.contains(e.target)) suppressNextClick.current = true;
         setContextMenu(null);
       }
     }
-    document.addEventListener('mousedown', handleClick);
-    return () => document.removeEventListener('mousedown', handleClick);
+    document.addEventListener('mousedown', handleMouseDown, true);
+    return () => document.removeEventListener('mousedown', handleMouseDown, true);
   }, [contextMenu]);
 
   function handleContextMenu(e) {
@@ -192,6 +210,7 @@ function DocumentCard({ doc, focusNote, onFocusHandled }) {
       {/* Context menu */}
       {contextMenu && (
         <div
+          ref={contextMenuRef}
           style={{
             position: 'fixed',
             top: contextMenu.y,
@@ -228,7 +247,7 @@ function DocumentCard({ doc, focusNote, onFocusHandled }) {
 
       {/* Body */}
       {!collapsed && (
-        <div style={{ padding: '8px 10px 10px' }}>
+        <div style={{ padding: '8px 10px 6px' }}>
           {/* Note field — hidden for types that don't use it */}
           {!SINGLE_INSTANCE_TYPES.has(doc.type) && !NO_NOTE_TYPES.has(doc.type) && <div style={{ marginBottom: 8 }}>
             <label style={{ fontSize: 11, color: '#94a3b8', display: 'block', marginBottom: 3 }}>Note</label>
@@ -326,14 +345,37 @@ function DocumentCard({ doc, focusNote, onFocusHandled }) {
               ) : null}
             </div>
           ))}
+
+          <div style={{ borderTop: '1px solid #f1f5f9', marginTop: 2, paddingTop: 2, textAlign: 'center' }}>
+            <button
+              onClick={() => setShowDeleteConfirm(true)}
+              style={{ fontSize: 11, color: '#334155', background: 'none', border: 'none', cursor: 'pointer', padding: '2px 0' }}
+            >
+              <span style={{ color: '#ef4444', marginRight: 4 }}>✕</span>Delete form
+            </button>
+          </div>
         </div>
+      )}
+
+      {showDeleteConfirm && createPortal(
+        <div style={{ position: 'fixed', inset: 0, zIndex: 9999, background: 'rgba(0,0,0,0.35)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div style={{ background: 'white', borderRadius: 10, padding: '24px 28px', maxWidth: 320, width: '90%', boxShadow: '0 8px 32px rgba(0,0,0,0.18)' }}>
+            <div style={{ fontSize: 15, fontWeight: 600, color: '#0f172a', marginBottom: 8 }}>Delete this form?</div>
+            <div style={{ fontSize: 13, color: '#64748b', marginBottom: 20 }}>This will remove the {DOC_TYPE_LABELS[doc.type]} form and cannot be undone.</div>
+            <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+              <button onClick={() => setShowDeleteConfirm(false)} style={{ padding: '7px 16px', borderRadius: 6, border: '1px solid #e2e8f0', background: 'white', fontSize: 13, cursor: 'pointer', color: '#334155' }}>Cancel</button>
+              <button onClick={() => { deleteDocument(doc.id); setShowDeleteConfirm(false); }} style={{ padding: '7px 16px', borderRadius: 6, border: 'none', background: '#ef4444', color: 'white', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>Delete</button>
+            </div>
+          </div>
+        </div>,
+        document.body
       )}
     </div>
   );
 }
 
 export default function SourceDocPanel({ width = 220 }) {
-  const { documents, filingStatus, setFilingStatus, addDocument } = useTaxStore();
+  const { documents, filingStatus, setFilingStatus, addDocument, taxYear, setTaxYear } = useTaxStore();
   const [showPicker, setShowPicker] = useState(false);
   const [newDocId, setNewDocId] = useState(null);
   const pickerRef = useRef(null);
@@ -375,8 +417,8 @@ export default function SourceDocPanel({ width = 220 }) {
         <div style={{ marginBottom: 12 }}>
           <label style={{ fontSize: 11, color: '#94a3b8', display: 'block', marginBottom: 4 }}>Tax year</label>
           <select
-            value="2025"
-            readOnly
+            value={taxYear}
+            onChange={e => setTaxYear(e.target.value)}
             style={{
               width: '100%',
               padding: '6px 8px',
@@ -385,9 +427,11 @@ export default function SourceDocPanel({ width = 220 }) {
               fontSize: 13,
               color: '#334155',
               background: 'white',
-              cursor: 'default',
+              cursor: 'pointer',
+              outline: 'none',
             }}
           >
+            <option value="2026">2026</option>
             <option value="2025">2025</option>
           </select>
         </div>

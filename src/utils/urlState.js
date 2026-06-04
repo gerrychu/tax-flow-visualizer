@@ -1,9 +1,9 @@
 import { compressToEncodedURIComponent, decompressFromEncodedURIComponent } from 'lz-string';
 
 // Encode scenario state into the URL hash.
-// Only documents, filingStatus, and overrides are persisted — computed is derived.
-export function encodeStateToHash(documents, filingStatus, overrides) {
-  const payload = JSON.stringify({ documents, filingStatus, overrides });
+// Only documents, filingStatus, overrides, and taxYear are persisted — computed is derived.
+export function encodeStateToHash(documents, filingStatus, overrides, taxYear) {
+  const payload = JSON.stringify({ documents, filingStatus, overrides, taxYear });
   const compressed = compressToEncodedURIComponent(payload);
   history.replaceState(null, '', '#' + compressed);
 }

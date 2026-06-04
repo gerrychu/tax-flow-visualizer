@@ -79,7 +79,7 @@ export default function TaxSankeyEdge({
           style={{
             stroke: 'transparent',
             strokeWidth: Math.max(strokeWidth + 12, 20),
-            cursor: 'crosshair',
+            cursor: 'pointer',
             pointerEvents: 'stroke',
           }}
           {...handlers}

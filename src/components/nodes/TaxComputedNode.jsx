@@ -1,12 +1,12 @@
 import { Handle, Position } from '@xyflow/react';
 import { formatCurrency } from '../../utils/format';
 
-export default function TaxComputedNode({ data, id }) {
+export default function TaxComputedNode({ data, id, selected }) {
   const { label, subtitle, amount, rows = [], highlighted, hasOverride, overrideKey, onOverrideClick, dimmed } = data;
 
   return (
     <div
-      className={`tax-node ${highlighted ? 'highlighted' : ''} ${dimmed ? 'opacity-40' : ''}`}
+      className={`tax-node ${highlighted ? 'highlighted' : ''} ${dimmed ? 'opacity-40' : ''} ${selected ? 'selected' : ''}`}
       style={{ minWidth: 190 }}
     >
       <div className="tax-node-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>

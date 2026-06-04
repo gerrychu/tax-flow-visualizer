@@ -1,7 +1,7 @@
 import { Handle, Position } from '@xyflow/react';
 import { formatCurrency } from '../../utils/format';
 
-export default function TaxBracketNode({ data }) {
+export default function TaxBracketNode({ data, selected }) {
   const { label, rate, income, tax, rangeFrom, rangeTo, dimmed, hideInBracket, hideKeep, displayAmount, ordinaryIncome, isOrdinary } = data;
 
   const rateLabel = `${Math.round(rate * 100)}%`;
@@ -12,7 +12,7 @@ export default function TaxBracketNode({ data }) {
 
   return (
     <div
-      className={`tax-node relative ${dimmed ? 'opacity-40' : ''}`}
+      className={`tax-node relative ${dimmed ? 'opacity-40' : ''} ${selected ? 'selected' : ''}`}
       style={{ minWidth: 190 }}
     >
       <div className="tax-node-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>

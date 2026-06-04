@@ -1,11 +1,11 @@
 import { Handle, Position } from '@xyflow/react';
 import { formatCurrency } from '../../utils/format';
 
-export default function TaxDeductionNode({ data, id }) {
+export default function TaxDeductionNode({ data, id, selected }) {
   const { label, itemizedTotal, standardDeduction, deductionType, hasOverride, onOverrideClick, overrideKey } = data;
 
   return (
-    <div className="tax-node" style={{ minWidth: 190 }}>
+    <div className={`tax-node ${selected ? 'selected' : ''}`} style={{ minWidth: 190 }}>
       <div className="tax-node-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <span>{label}</span>
         {hasOverride && (

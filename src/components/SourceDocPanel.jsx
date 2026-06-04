@@ -110,7 +110,7 @@ function CurrencyInput({ value, onChange, placeholder = '0', allowNegative = fal
 }
 
 function DocumentCard({ doc, focusNote, onFocusHandled }) {
-  const { updateDocument, deleteDocument, setFocusedDoc, focusedDocId, expandToDocId, clearExpandToDoc } = useTaxStore();
+  const { updateDocument, deleteDocument, setFocusedDoc, focusedDocId, expandToDocId, clearExpandToDoc, selectedDocId, setSelectedDoc } = useTaxStore();
   const [collapsed, setCollapsed] = useState(false);
   const [contextMenu, setContextMenu] = useState(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -119,6 +119,7 @@ function DocumentCard({ doc, focusNote, onFocusHandled }) {
   const contextMenuRef = useRef(null);
   const suppressNextClick = useRef(false);
   const isFocused = focusedDocId === doc.id;
+  const isSelected = selectedDocId === doc.id;
 
   useEffect(() => {
     if (focusNote) {
@@ -131,7 +132,7 @@ function DocumentCard({ doc, focusNote, onFocusHandled }) {
   useEffect(() => {
     if (expandToDocId === doc.id) {
       setCollapsed(false);
-      cardRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      cardRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
       clearExpandToDoc();
     }
   }, [expandToDocId]);
@@ -176,13 +177,14 @@ function DocumentCard({ doc, focusNote, onFocusHandled }) {
       ref={cardRef}
       onMouseEnter={() => setFocusedDoc(doc.id)}
       onMouseLeave={() => setFocusedDoc(null)}
+      onClick={() => setSelectedDoc(doc.id)}
       style={{
         background: 'white',
-        border: isFocused ? '1.5px solid #6366f1' : '1px solid #e2e8f0',
+        border: (isFocused || isSelected) ? '1.5px solid #6366f1' : '1px solid #e2e8f0',
         borderRadius: 8,
         marginBottom: 8,
         overflow: 'visible',
-        boxShadow: isFocused ? '0 0 0 3px rgba(99,102,241,0.1)' : '0 1px 2px rgba(0,0,0,0.04)',
+        boxShadow: isSelected ? '0 0 0 3px rgba(99,102,241,0.2)' : isFocused ? '0 0 0 3px rgba(99,102,241,0.1)' : '0 1px 2px rgba(0,0,0,0.04)',
         transition: 'border-color 0.15s, box-shadow 0.15s',
       }}
     >

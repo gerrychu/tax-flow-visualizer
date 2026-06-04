@@ -42,7 +42,7 @@ const edgeTypes = {
 };
 
 function TaxFlow() {
-  const { documents, filingStatus, overrides, focusedDocId, computed, lastAddedDocId, clearLastAddedDoc, setExpandToDoc, setShowExportMenu, setShowPresetsMenu, setSelectedNode } = useTaxStore();
+  const { documents, filingStatus, overrides, focusedDocId, computed, lastAddedDocId, clearLastAddedDoc, setExpandToDoc, setShowExportMenu, setShowPresetsMenu, setSelectedNode, setSelectedDoc } = useTaxStore();
   const [openPopover, setOpenPopover] = useState(null);
   const [canvasTooltip, setCanvasTooltip] = useState(null);
   const [nodesDraggable, setNodesDraggable] = useState(false);
@@ -122,7 +122,12 @@ function TaxFlow() {
   }, [baseNodes, fitView]);
 
   const onNodeClick = (_evt, node) => {
-    if (node.data?.sourceDocId) setExpandToDoc(node.data.sourceDocId);
+    if (node.data?.sourceDocId) {
+      setExpandToDoc(node.data.sourceDocId);
+      setSelectedDoc(node.data.sourceDocId);
+    } else {
+      setSelectedDoc(null);
+    }
   };
 
   const onSelectionChange = useCallback(({ nodes: selected }) => {
@@ -358,7 +363,7 @@ function TaxFlow() {
         maxZoom={2}
         style={{ background: '#f8fafc' }}
         proOptions={{ hideAttribution: true }}
-        onPaneClick={() => { setOpenPopover(null); setShowExportMenu(false); setShowPresetsMenu(false); setSelectedNode(null); }}
+        onPaneClick={() => { setOpenPopover(null); setShowExportMenu(false); setShowPresetsMenu(false); setSelectedNode(null); setSelectedDoc(null); }}
         onMoveStart={(e) => {
           if (e?.type === 'wheel') { scrollCount.current += 1; }
           else { dragCount.current += 1; }

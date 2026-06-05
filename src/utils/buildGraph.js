@@ -1344,7 +1344,7 @@ export function buildGraph(documents, _filingStatus, _overrides, computed, focus
   // SS overpayment calculation nodes — per employee with multiple W-2s
   // subCol 1: SS Wages + Social Security Tax + SS Withheld (stacked); subCol 2: SS Overpayment
   // Build SS data for ALL employees with SS wages (not just overpayment cases)
-  const SS_WAGE_BASE_BG = 176100;
+  const SS_WAGE_BASE_BG = computed.ssWageBase ?? 184500;
   const SS_RATE_BG = 0.062;
   const w2ByEmployeeBG = {};
   for (const doc of w2s) {

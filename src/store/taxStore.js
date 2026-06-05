@@ -31,6 +31,7 @@ const TAX_YEAR_DATA = {
       single: { rate0: 48350, rate15: 533400 },
       mfj: { rate0: 96700, rate15: 600050 },
     },
+    ssWageBase: 176100,
   },
   '2026': {
     brackets: {
@@ -58,6 +59,7 @@ const TAX_YEAR_DATA = {
       single: { rate0: 50400, rate15: 553800 },
       mfj: { rate0: 100800, rate15: 623050 },
     },
+    ssWageBase: 184500,
   },
 };
 
@@ -127,7 +129,7 @@ function calcPrefBrackets(ltcgIncome, ordinaryTaxableIncome, filingStatus, ltcgT
 
 // ─── recalculate ─────────────────────────────────────────────────────────────
 function recalculate(documents, filingStatus, overrides, taxYear = '2026') {
-  const { brackets: BRACKETS, standardDeduction: STANDARD_DEDUCTION, ltcgThresholds: LTCG_THRESHOLDS } = TAX_YEAR_DATA[taxYear] || TAX_YEAR_DATA['2026'];
+  const { brackets: BRACKETS, standardDeduction: STANDARD_DEDUCTION, ltcgThresholds: LTCG_THRESHOLDS, ssWageBase: SS_WAGE_BASE } = TAX_YEAR_DATA[taxYear] || TAX_YEAR_DATA['2026'];
   // Group documents by type
   const byType = {};
   for (const doc of documents) {
@@ -370,9 +372,8 @@ function recalculate(documents, filingStatus, overrides, taxYear = '2026') {
 
   // ── Social Security overpayment ──
   // Each employer withholds SS independently. If one employee holds multiple jobs
-  // and total SS wages exceed the 2025 wage base ($176,100), they overpaid SS —
+  // and total SS wages exceed the wage base, they overpaid SS —
   // the excess is a credit on Form 1040.
-  const SS_WAGE_BASE = 176100;
   const SS_RATE = 0.062;
 
   const w2ByEmployee = {};
@@ -500,6 +501,7 @@ function recalculate(documents, filingStatus, overrides, taxYear = '2026') {
     prefBracketResults,
     totalTax,
     // Social Security overpayment
+    ssWageBase: SS_WAGE_BASE,
     ssOverpaymentByEmployee,
     totalSsOverpayment,
     // Results

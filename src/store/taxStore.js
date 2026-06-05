@@ -422,7 +422,7 @@ function recalculate(documents, filingStatus, overrides, taxYear = '2026') {
   const medThreshold = filingStatus === 'mfj' ? 250000 : 200000;
   const medStdWages = Math.min(totalMedWages, medThreshold);
   const medAboveWages = Math.max(0, totalMedWages - medThreshold);
-  const totalMedTax = totalMedWages > 0 ? medStdWages * 0.0145 + medAboveWages * 0.009 : 0;
+  const totalMedTax = totalMedWages > 0 ? medStdWages * 0.0145 + medAboveWages * 0.0235 : 0;
   const medTaxNet = w2MedWithheld - totalMedTax;
   const totalAllTaxes = totalTax + totalSsTax + totalMedTax;
   const adjustedRefundOrOwed = refundOrOwed + medTaxNet;

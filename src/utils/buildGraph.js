@@ -1268,7 +1268,7 @@ export function buildGraph(documents, _filingStatus, _overrides, computed, focus
     nodes[nodes.length - 1].position.x = nodeX(2, agiSubCol);
     edges.push(makeEdge(eid(), 'med-wages-agg', 'med-wages-z2', EDGE_COLORS.ssMedicare, totalMedWages, { tooltipLabel: 'Total Medicare wages' }));
 
-    // Zone 4 medicare brackets — 1.45% (standard) on top, 0.9% (excess) below
+    // Zone 4 medicare brackets — 1.45% (standard) on top, 2.35% (combined) below
     const medThreshold = _filingStatus === 'mfj' ? 250000 : 200000;
     const medWagesStd   = Math.min(totalMedWages, medThreshold);
     const medWagesAbove = Math.max(0, totalMedWages - medThreshold);
@@ -1285,10 +1285,10 @@ export function buildGraph(documents, _filingStatus, _overrides, computed, focus
     nodes[nodes.length - 1].position.x = nodeX(4, 0);
     if (medWagesAbove > 0) {
       nodes.push(makeNode('med-bracket-09', 4, 4, 'taxBracket', {
-        label: 'Medicare 0.9%',
-        rate: 0.009,
+        label: 'Medicare 2.35%',
+        rate: 0.0235,
         income: medWagesAbove,
-        tax: medWagesAbove * 0.009,
+        tax: medWagesAbove * 0.0235,
         rangeFrom: medThreshold,
         rangeTo: Infinity,
         hideKeep: true,
@@ -1300,7 +1300,7 @@ export function buildGraph(documents, _filingStatus, _overrides, computed, focus
     if (medWagesStd > 0) edges.push(makeEdge(eid(), 'med-wages-z2', 'med-bracket-145', EDGE_COLORS.ssMedicare, medWagesStd, { tooltipLabel: 'Medicare wages' }));
 
     // Total Medicare tax node — zone 5, x aligned with Total income tax
-    const totalMedTax = medWagesStd * 0.0145 + medWagesAbove * 0.009;
+    const totalMedTax = medWagesStd * 0.0145 + medWagesAbove * 0.0235;
     nodes.push(makeNode('med-tax-total', 5, 0, 'taxComputed', {
       label: 'Total Medicare tax',
       amount: totalMedTax,
@@ -1308,7 +1308,7 @@ export function buildGraph(documents, _filingStatus, _overrides, computed, focus
       ySyncGroup: 'med-wages',
     }));
     if (medWagesStd * 0.0145 > 0) edges.push(makeEdge(eid(), 'med-bracket-145', 'med-tax-total', EDGE_COLORS.ssMedicare, medWagesStd * 0.0145, { tooltipLabel: 'Medicare tax (1.45%)' }));
-    if (medWagesAbove * 0.009 > 0) edges.push(makeEdge(eid(), 'med-bracket-09', 'med-tax-total', EDGE_COLORS.ssMedicare, medWagesAbove * 0.009, { tooltipLabel: 'Additional Medicare tax (0.9%)' }));
+    if (medWagesAbove * 0.0235 > 0) edges.push(makeEdge(eid(), 'med-bracket-09', 'med-tax-total', EDGE_COLORS.ssMedicare, medWagesAbove * 0.0235, { tooltipLabel: 'Medicare tax (2.35%)' }));
   }
 
   // Zone 5 Medicare WHG aggregation

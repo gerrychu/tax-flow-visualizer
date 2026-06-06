@@ -27,7 +27,7 @@ export const PRESETS = [
   },
   {
     name: 'Married, two W-2s + investments',
-    description: 'MFJ, two incomes, dividends, cap gains',
+    description: 'MFJ, two incomes, dividends, mortgage, donations',
     filingStatus: 'mfj',
     overrides: {},
     documents: [
@@ -62,18 +62,44 @@ export const PRESETS = [
       {
         type: '1099-DIV',
         note: 'Arbor Financial',
-        fields: { line1a: '8200', line1b: '6000', line5: '1200' },
+        fields: { line1a: '8200', line1b: '6000' },
       },
       {
-        type: '1099-B',
-        note: 'Keystone Brokerage',
-        fields: { shortTerm: '3500', longTerm: '18000' },
+        type: '1098',
+        note: 'First National Mortgage',
+        fields: {
+          mortgageInterest: '14600',
+          outstandingPrincipal: '487000',
+          originationDate: '2020-04-15',
+          principalBalanceDec31: '481000',
+          realEstateTaxes: '8200',
+        },
+      },
+      {
+        type: '1099-INT',
+        note: 'Riverside Savings',
+        fields: { line1: '720' },
+      },
+      {
+        type: '1099-INT',
+        note: 'Maple Credit Union',
+        fields: { line1: '94' },
+      },
+      {
+        type: 'Charitable donation',
+        note: 'Red Cross',
+        fields: { amount: '350' },
+      },
+      {
+        type: 'Charitable donation',
+        note: 'Nature Conservancy',
+        fields: { amount: '100' },
       },
     ],
   },
   {
     name: 'High earner, itemized deductions',
-    description: 'Single, high income, mortgage + charitable',
+    description: 'Single, high income, cap gains, mortgage over cap, donations',
     filingStatus: 'single',
     overrides: {},
     documents: [
@@ -106,6 +132,16 @@ export const PRESETS = [
         type: 'State and local taxes',
         note: '',
         fields: { amount: '4000' },
+      },
+      {
+        type: '1099-B',
+        note: 'Lakewood Brokerage',
+        fields: { shortTerm: '5800', longTerm: '12400' },
+      },
+      {
+        type: '1099-B',
+        note: 'Vantage Securities',
+        fields: { shortTerm: '-1900', longTerm: '-4300' },
       },
       {
         type: 'Charitable donation',

@@ -377,11 +377,12 @@ function DocumentCard({ doc, focusNote, onFocusHandled }) {
   );
 }
 
-export default function SourceDocPanel({ width = 220 }) {
+export default function SourceDocPanel({ width = 220, isOpen = true, onClose }) {
   const { documents, filingStatus, setFilingStatus, addDocument, taxYear, setTaxYear } = useTaxStore();
   const [showPicker, setShowPicker] = useState(false);
   const [newDocId, setNewDocId] = useState(null);
   const pickerRef = useRef(null);
+  const isMobile = window.innerWidth < 640;
 
   useEffect(() => {
     function handleClick(e) {
@@ -402,18 +403,38 @@ export default function SourceDocPanel({ width = 220 }) {
   });
 
   return (
-    <div style={{
-      width: width,
-      height: '100vh',
-      background: '#f8fafc',
-      borderRight: '1px solid #e2e8f0',
-      display: 'flex',
-      flexDirection: 'column',
-      position: 'fixed',
-      left: 0,
-      top: 0,
-      zIndex: 100,
-    }}>
+    <>
+      {isOpen && isMobile && createPortal(
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', zIndex: 99 }} onClick={onClose} />,
+        document.body
+      )}
+      <div style={{
+        width: width,
+        height: '100vh',
+        background: '#f8fafc',
+        borderRight: '1px solid #e2e8f0',
+        display: 'flex',
+        flexDirection: 'column',
+        position: 'fixed',
+        left: 0,
+        top: 0,
+        zIndex: 100,
+        transform: isOpen ? 'translateX(0)' : 'translateX(-100%)',
+        transition: 'transform 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
+      }}>
+        {onClose && (
+          <button
+            onClick={onClose}
+            title="Hide sidebar"
+            style={{
+              position: 'absolute', top: 8, right: 8, zIndex: 1,
+              padding: '2px 6px',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              background: 'none', border: 'none', cursor: 'pointer',
+              color: '#334155', fontSize: 13, fontWeight: 500, borderRadius: 4, whiteSpace: 'nowrap',
+            }}
+          >◀ Hide</button>
+        )}
       {/* Header */}
       <div style={{ padding: '16px 12px 12px', borderBottom: '1px solid #e2e8f0', flexShrink: 0 }}>
         {/* Tax year */}
@@ -561,5 +582,6 @@ export default function SourceDocPanel({ width = 220 }) {
         ))}
       </div>
     </div>
+    </>
   );
 }

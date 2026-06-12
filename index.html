@@ -131,20 +131,113 @@
         color: #94a3b8;
       }
 
-      .screenshot-wrap {
+      /* CAROUSEL CSS — commented out, kept for reference
+      .carousel-wrap {
         margin-top: 48px;
         width: 100%;
         max-width: 900px;
+        position: relative;
+      }
+
+      .carousel-viewport {
         border-radius: 12px;
         overflow: hidden;
         border: 1px solid #e2e8f0;
         box-shadow: 0 8px 40px rgba(0,0,0,0.12);
+        position: relative;
       }
 
-      .screenshot {
+      .carousel-track {
+        display: flex;
+        transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        will-change: transform;
+      }
+
+      .carousel-slide {
+        flex: 0 0 100%;
+        min-width: 0;
+      }
+
+      .carousel-slide img,
+      .carousel-slide source {
         display: block;
         width: 100%;
         height: auto;
+      }
+
+      .carousel-btn {
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        background: white;
+        border: 1px solid #e2e8f0;
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+        z-index: 2;
+        transition: background 0.15s, box-shadow 0.15s;
+        color: #475569;
+        font-size: 16px;
+        padding: 0;
+        line-height: 1;
+      }
+      .carousel-btn:hover { background: #f8fafc; box-shadow: 0 4px 12px rgba(0,0,0,0.16); color: #6366f1; }
+      .carousel-btn.prev { left: -20px; }
+      .carousel-btn.next { right: -20px; }
+      .carousel-btn:disabled { opacity: 0.3; cursor: default; }
+
+      .carousel-dots {
+        display: flex;
+        justify-content: center;
+        gap: 8px;
+        margin-top: 16px;
+      }
+
+      .carousel-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: #cbd5e1;
+        border: none;
+        cursor: pointer;
+        padding: 0;
+        transition: background 0.2s, transform 0.2s;
+      }
+      .carousel-dot.active { background: #6366f1; transform: scale(1.2); }
+      .carousel-dot:hover:not(.active) { background: #94a3b8; }
+      END CAROUSEL CSS */
+
+      .hero-scroll-wrap {
+        margin-top: 48px;
+        width: 100%;
+        max-width: 900px;
+        position: relative;
+      }
+
+.hero-scroll {
+        border-radius: 12px;
+        overflow-x: auto;
+        overflow-y: hidden;
+        border: 1px solid #e2e8f0;
+        box-shadow: 0 8px 40px rgba(0,0,0,0.12);
+        cursor: grab;
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+      }
+      .hero-scroll::-webkit-scrollbar { display: none; }
+
+      .hero-scroll img {
+        display: block;
+        height: 550px;
+        width: auto;
+        max-width: none;
+        user-select: none;
+        -webkit-user-drag: none;
       }
 
       .features {
@@ -217,11 +310,43 @@
       <p class="cta-note">Free. No account required.</p>
       <p class="cta-note">Not for tax filing — for educational purposes only</p>
 
-      <div class="screenshot-wrap">
-        <picture>
-          <source type="image/webp" srcset="/screenshot@1x.webp 1x, /screenshot@2x.webp 2x" />
-          <img src="/screenshot@1x.png" srcset="/screenshot@1x.png 1x, /screenshot@2x.png 2x" alt="Tax flow visualizer screenshot" class="screenshot" />
-        </picture>
+      <!-- CAROUSEL HTML — commented out, kept for reference
+      <div class="carousel-wrap" id="carousel">
+        <div class="carousel-viewport">
+          <div class="carousel-track" id="carouselTrack">
+            <div class="carousel-slide">
+              <picture>
+                <source type="image/webp" srcset="/screenshot1@2x.webp" />
+                <img src="/screenshot1@2x.png" srcset="/screenshot1@1x.png 1x, /screenshot1@2x.png 2x" alt="Tax flow visualizer screenshot" />
+              </picture>
+            </div>
+            <div class="carousel-slide">
+              <picture>
+                <source type="image/webp" srcset="/screenshot2@1x.webp 1x, /screenshot2@2x.webp 2x" />
+                <img src="/screenshot2@2x.png" srcset="/screenshot2@1x.png 1x, /screenshot2@2x.png 2x" alt="Tax flow visualizer screenshot" />
+              </picture>
+            </div>
+            <div class="carousel-slide">
+              <picture>
+                <source type="image/webp" srcset="/screenshot3@1x.webp 1x, /screenshot3@2x.webp 2x" />
+                <img src="/screenshot3@2x.png" srcset="/screenshot3@1x.png 1x, /screenshot3@2x.png 2x" alt="Tax flow visualizer screenshot" />
+              </picture>
+            </div>
+          </div>
+        </div>
+        <button class="carousel-btn prev" id="prevBtn" aria-label="Previous slide">&#8592;</button>
+        <button class="carousel-btn next" id="nextBtn" aria-label="Next slide">&#8594;</button>
+        <div class="carousel-dots" id="carouselDots"></div>
+      </div>
+      END CAROUSEL HTML -->
+
+      <div class="hero-scroll-wrap">
+        <div class="hero-scroll" id="heroScroll">
+          <picture>
+            <source type="image/webp" srcset="/tab_screenshot@1x.webp 1x, /tab_screenshot@2x.webp 2x" />
+            <img src="/tab_screenshot@1x.png" srcset="/tab_screenshot@1x.png 1x, /tab_screenshot@2x.png 2x" alt="Tax flow visualizer — full diagram view" />
+          </picture>
+        </div>
       </div>
 
       <div class="features">
@@ -247,5 +372,72 @@
       Built by <a href="mailto:gerry@gerrychu.com">Gerry Chu</a> &nbsp;·&nbsp;
       Not for tax filing — for educational purposes only
     </footer>
+    <script>
+      /* CAROUSEL JS — commented out, kept for reference
+      (function () {
+        const track = document.getElementById('carouselTrack');
+        const dotsContainer = document.getElementById('carouselDots');
+        const prevBtn = document.getElementById('prevBtn');
+        const nextBtn = document.getElementById('nextBtn');
+        const slides = track.querySelectorAll('.carousel-slide');
+        const total = slides.length;
+        let current = 0;
+        let autoTimer;
+
+        slides.forEach((_, i) => {
+          const dot = document.createElement('button');
+          dot.className = 'carousel-dot' + (i === 0 ? ' active' : '');
+          dot.setAttribute('aria-label', 'Go to slide ' + (i + 1));
+          dot.addEventListener('click', () => goTo(i));
+          dotsContainer.appendChild(dot);
+        });
+
+        if (total <= 1) {
+          prevBtn.style.display = 'none';
+          nextBtn.style.display = 'none';
+          dotsContainer.style.display = 'none';
+          return;
+        }
+
+        function goTo(index) {
+          current = (index + total) % total;
+          track.style.transform = 'translateX(-' + (current * 100) + '%)';
+          dotsContainer.querySelectorAll('.carousel-dot').forEach((d, i) => {
+            d.classList.toggle('active', i === current);
+          });
+        }
+
+        prevBtn.addEventListener('click', () => { goTo(current - 1); resetAuto(); });
+        nextBtn.addEventListener('click', () => { goTo(current + 1); resetAuto(); });
+
+        function startAuto() { autoTimer = setInterval(() => goTo(current + 1), 4500); }
+        function resetAuto() { clearInterval(autoTimer); startAuto(); }
+
+        document.getElementById('carousel').addEventListener('mouseenter', () => clearInterval(autoTimer));
+        document.getElementById('carousel').addEventListener('mouseleave', startAuto);
+        startAuto();
+      })();
+      END CAROUSEL JS */
+
+      (function () {
+        const el = document.getElementById('heroScroll');
+        let isDown = false, startX, scrollLeft;
+        el.addEventListener('mousedown', e => {
+          isDown = true;
+          el.style.cursor = 'grabbing';
+          startX = e.pageX - el.offsetLeft;
+          scrollLeft = el.scrollLeft;
+        });
+        window.addEventListener('mouseup', () => {
+          isDown = false;
+          el.style.cursor = 'grab';
+        });
+        el.addEventListener('mousemove', e => {
+          if (!isDown) return;
+          e.preventDefault();
+          el.scrollLeft = scrollLeft - (e.pageX - el.offsetLeft - startX);
+        });
+      })();
+    </script>
   </body>
 </html>

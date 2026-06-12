@@ -2,7 +2,7 @@ import { toPng, toSvg } from 'html-to-image';
 import { getNodesBounds, getViewportForBounds } from '@xyflow/react';
 
 const IMAGE_WIDTH = 2400;
-const PIXEL_RATIO = 2;
+const PIXEL_RATIO = 3;
 const PADDING = 0.08;
 
 function getExportTransform(nodes) {

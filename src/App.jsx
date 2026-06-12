@@ -28,7 +28,7 @@ export default function App() {
           <button
             onClick={() => setSidebarOpen(true)}
             style={{
-              position: 'absolute', top: 12, left: 12, zIndex: 150,
+              position: 'fixed', top: 'calc(env(safe-area-inset-top, 0px) + 12px)', left: 12, zIndex: 150,
               padding: '6px 12px',
               background: 'white',
               border: '1px solid #e2e8f0',

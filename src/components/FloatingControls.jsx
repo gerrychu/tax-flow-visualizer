@@ -46,6 +46,24 @@ export default function FloatingControls() {
   const [showLimitations, setShowLimitations] = useState(false);
   const isMobile = window.innerWidth < 480;
   const [showMobileWarning, setShowMobileWarning] = useState(isMobile);
+  const [isNarrow, setIsNarrow] = useState(() => window.innerWidth < 640);
+  const [showMenu, setShowMenu] = useState(false);
+  const menuRef = useRef(null);
+
+  useEffect(() => {
+    function handleResize() { setIsNarrow(window.innerWidth < 640); }
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  useEffect(() => {
+    if (!showMenu) return;
+    function handleClick(e) {
+      if (menuRef.current && !menuRef.current.contains(e.target)) setShowMenu(false);
+    }
+    document.addEventListener('mousedown', handleClick, true);
+    return () => document.removeEventListener('mousedown', handleClick, true);
+  }, [showMenu]);
   const disclaimerSeen = () => {
     const match = document.cookie.match(/(?:^|;\s*)disclaimer_seen=([^;]*)/);
     return match ? Date.now() - parseInt(match[1], 10) < 60 * 24 * 60 * 60 * 1000 : false;
@@ -65,11 +83,73 @@ export default function FloatingControls() {
     whiteSpace: 'nowrap',
   };
 
+  const menuItemStyle = {
+    display: 'block', width: '100%', padding: '10px 16px',
+    background: 'white', border: 'none', fontSize: 13, fontWeight: 500,
+    color: '#6366f1', cursor: 'pointer', textAlign: 'left', whiteSpace: 'nowrap',
+    borderBottom: '1px solid #f1f5f9',
+  };
+
   return (
     <>
+      {isNarrow ? (
+        <div ref={menuRef} style={{
+          position: 'fixed',
+          top: 'calc(env(safe-area-inset-top, 0px) + 8px)',
+          right: 12,
+          zIndex: 200,
+        }}>
+          <button
+            style={{ ...btnStyle, color: '#6366f1', boxShadow: '0 4px 20px rgba(0,0,0,0.1)' }}
+            onClick={() => setShowMenu(m => !m)}
+          >
+            Menu
+          </button>
+          {showMenu && (
+            <div style={{
+              position: 'absolute', top: 'calc(100% + 6px)', right: 0,
+              background: 'white', border: '1px solid #e2e8f0', borderRadius: 10,
+              boxShadow: '0 4px 20px rgba(0,0,0,0.12)', overflow: 'hidden', minWidth: 180,
+            }}>
+              <button style={menuItemStyle} onClick={() => { setShowAbout(true); setShowMenu(false); window.umami?.track('About Opened'); }}>About</button>
+              <button style={menuItemStyle} onClick={() => { setShowLimitations(true); setShowMenu(false); window.umami?.track('Limitations Opened'); }}>Limitations</button>
+              <div style={{ height: 1, background: '#e2e8f0' }} />
+              <button style={menuItemStyle} onClick={() => {
+                navigator.clipboard.writeText(window.location.href);
+                setCopied(true); setTimeout(() => setCopied(false), 2000);
+                setShowMenu(false); window.umami?.track('Link Copied');
+                alert('Link copied to clipboard. The link contains all the data you entered encoded within it. This is a way to save the data you entered. Later I will implement a real save feature.');
+              }}>{copied ? '✓ Copied!' : 'Save (copy link)'}</button>
+              <div style={{ height: 1, background: '#e2e8f0' }} />
+              <div style={{ padding: '8px 16px 4px', fontSize: 10, fontWeight: 700, color: '#94a3b8', letterSpacing: '0.06em', textTransform: 'uppercase' }}>Export Image</div>
+              {[['PNG', exportToPng], ['SVG', exportToSvg]].map(([label, fn]) => (
+                <button key={label} disabled={exporting} style={menuItemStyle} onClick={async () => {
+                  setShowMenu(false); setExporting(true);
+                  window.umami?.track(`Export ${label}`, { format: label });
+                  try { await fn(getNodes()); } finally { setExporting(false); }
+                }}>{label}</button>
+              ))}
+              <div style={{ height: 1, background: '#e2e8f0' }} />
+              <div style={{ padding: '8px 16px 4px', fontSize: 10, fontWeight: 700, color: '#94a3b8', letterSpacing: '0.06em', textTransform: 'uppercase' }}>Examples</div>
+              {PRESETS.map(preset => (
+                <button key={preset.name} style={menuItemStyle} onClick={() => {
+                  loadScenario(preset); setShowPresetsMenu(false); setShowMenu(false);
+                  window.umami?.track('Example Loaded', { name: preset.name });
+                  setTimeout(() => fitView({ padding: 0.12, duration: 500 }), 50);
+                }}>
+                  {preset.name}
+                  <div style={{ fontSize: 11, color: '#94a3b8', fontWeight: 400, marginTop: 1 }}>{preset.description}</div>
+                </button>
+              ))}
+              <div style={{ height: 1, background: '#e2e8f0' }} />
+              <button style={{ ...menuItemStyle, color: '#ef4444', borderBottom: 'none' }} onClick={() => { setShowClearConfirm(true); setShowMenu(false); window.umami?.track('Clear Initiated'); }}>Clear</button>
+            </div>
+          )}
+        </div>
+      ) : (
       <div style={{
         position: 'fixed',
-        bottom: 24,
+        top: 'calc(env(safe-area-inset-top, 0px) + 8px)',
         left: '50%',
         transform: 'translateX(-50%)',
         zIndex: 200,
@@ -97,7 +177,7 @@ export default function FloatingControls() {
           {showExportMenu && (
             <div style={{
               position: 'absolute',
-              bottom: 'calc(100% + 6px)',
+              top: 'calc(100% + 6px)',
               left: '50%',
               transform: 'translateX(-50%)',
               background: 'white',
@@ -135,7 +215,7 @@ export default function FloatingControls() {
           {showPresetsMenu && (
             <div style={{
               position: 'absolute',
-              bottom: 'calc(100% + 6px)',
+              top: 'calc(100% + 6px)',
               left: '50%',
               transform: 'translateX(-50%)',
               background: 'white',
@@ -173,6 +253,7 @@ export default function FloatingControls() {
         </div>
         <button style={{ ...btnStyle, color: '#ef4444' }} onClick={() => { setShowClearConfirm(true); window.umami?.track('Clear Initiated'); }}>Clear</button>
       </div>
+      )}
 
       {showClearConfirm && createPortal(
         <div style={{ position: 'fixed', inset: 0, zIndex: 9999, background: 'rgba(0,0,0,0.35)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>

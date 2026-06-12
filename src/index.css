@@ -98,6 +98,13 @@ html, body, #root {
   background: #94a3b8;
 }
 
+/* Prevent iOS auto-zoom on input focus (triggered when font-size < 16px) */
+@media (hover: none) and (pointer: coarse) {
+  input, select, textarea {
+    font-size: 16px !important;
+  }
+}
+
 /* Node height transition */
 .react-flow__node {
   transition: none;

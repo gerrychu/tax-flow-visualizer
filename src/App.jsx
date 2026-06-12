@@ -6,7 +6,7 @@ import SummaryPanel from './components/SummaryPanel';
 export const LEFT_PANEL_WIDTH = 220;
 
 export default function App() {
-  const [sidebarOpen, setSidebarOpen] = useState(() => window.innerWidth >= 640);
+  const [sidebarOpen, setSidebarOpen] = useState(true);
 
   return (
     <div style={{ display: 'flex', height: '100vh', overflow: 'hidden', background: '#f8fafc' }}>

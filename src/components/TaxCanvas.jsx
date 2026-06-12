@@ -45,6 +45,7 @@ function TaxFlow() {
   const { documents, filingStatus, overrides, focusedDocId, computed, lastAddedDocId, clearLastAddedDoc, setExpandToDoc, setShowExportMenu, setShowPresetsMenu, setSelectedNode, setSelectedDoc } = useTaxStore();
   const [openPopover, setOpenPopover] = useState(null);
   const [canvasTooltip, setCanvasTooltip] = useState(null);
+  const isTouch = 'ontouchstart' in window;
   const [nodesDraggable, setNodesDraggable] = useState(false);
   const [layoutKey, setLayoutKey] = useState(0);
   const tooltipDisabled = useRef(false);
@@ -399,7 +400,7 @@ function TaxFlow() {
         <FloatingControls />
       </ReactFlow>
 
-      {canvasTooltip && (
+      {canvasTooltip && !isTouch && (
         <div style={{
           position: 'fixed',
           top: canvasTooltip.y + 10,
